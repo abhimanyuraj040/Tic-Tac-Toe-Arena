@@ -26,6 +26,8 @@ const App = () => {
   const [status, setStatus] = useState("Waiting for opponent...");
   const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [opponentSymbol, setOpponentSymbol] = useState("");
+  const [opponentName, setOpponentName] = useState("");
 
   useEffect(() => {
     socket.on("playerAssignment", (symbol) => setPlayerSymbol(symbol));
@@ -33,12 +35,29 @@ const App = () => {
     socket.on("gameState", ({ board, currentPlayer, playerNames, winner }) => {
       setBoard(board);
       setCurrentPlayer(currentPlayer);
+
       if (winner) {
-        setStatus(winner === "draw" ? "It's a draw!" : `Winner: ${winner}`);
+        if (winner === "draw") {
+          setStatus("It's a draw!");
+        } else if (playerNames) {
+          const winnerSymbol = playerNames.X === winner ? "X" : "O";
+          if (playerSymbol === winnerSymbol) {
+            setStatus("You won!");
+          } else {
+            setStatus("You lost!");
+          }
+        }
       } else {
-        setStatus(
-          `Next player: ${playerNames?.[currentPlayer] || currentPlayer}`
-        );
+        const opponentSymbol = playerSymbol === "X" ? "O" : "X";
+        setOpponentSymbol(opponentSymbol);
+        const opponentName = playerNames?.[opponentSymbol] || "Opponent";
+        setOpponentName(opponentName);
+
+        // Set correct message depending on who is playing
+        const message =
+          playerSymbol === currentPlayer ? "Your Turn" : `Opponent's Turn`;
+
+        setStatus(message);
       }
     });
 
@@ -49,7 +68,7 @@ const App = () => {
       socket.off("gameState");
       socket.off("roomFull");
     };
-  }, []);
+  }, [playerSymbol]);
 
   const handleSubmit = () => {
     if (name.trim()) {
@@ -87,16 +106,28 @@ const App = () => {
   return (
     <div>
       {/* <div>You are: {playerSymbol}</div> */}
-      <div>
-        You are: {playerSymbol} ({name})
+      <div className="left left-top">
+        You are:  {name} - {playerSymbol}
       </div>
-      <div>Opponent: {status.includes("Waiting") ? "Waiting..." : "Ready"}</div>
-      <div>Current Player: {currentPlayer}</div>
-      {/* <div> {name === (playerNames?.[currentPlayer] || currentPlayer) ? (
-        <div className="current-player">It's your turn!</div>
-      ) : currentPlayer + ' Turn'} </div> */}
-      <div>{status}</div>
-      <div className="game-container">
+      <div className="right right-top"> Opponent: {opponentName} - {opponentSymbol} </div>
+      <div className="centre" style={{ marginTop: "6rem" }}>
+        Opponent: {status.includes("Waiting") ? "Waiting..." : "Ready"}
+      </div>
+      {/* <div>Current Player: {currentPlayer}</div> */}
+      {/* <div className="centre status-message">{status}</div> */}
+      <div
+        className={`status-message centre ${
+          playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
+        }`}
+      >
+        {status}
+      </div>
+
+      <div
+        className={`game-container ${
+          playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
+        }`}
+      >
         <Board board={board} onSquareClick={handleSquareClick} />
       </div>
     </div>

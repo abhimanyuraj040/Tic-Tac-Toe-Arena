@@ -68,8 +68,9 @@
 .game-container{
   padding: 20px;
   position: absolute;
-  top:35%;
-  left:30%;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
 }
 
 .left{
@@ -106,4 +107,39 @@
 
 .start-button:hover {
   background-color: #2563eb;
+}
+
+.status-message {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 3rem;
+}
+
+.your-turn {
+  /* border: 2px solid green; */
+  transition: all 0.3s ease;
+}
+
+.opponent-turn {
+  /* opacity: 0.5; */
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.status-message.your-turn {
+  color: green;
+}
+
+.status-message.opponent-turn {
+  color: rgb(235, 34, 34);
+}
+
+.right-top{
+  top: 8%;
+  right: 10%;
+}
+
+.left-top{
+  top: 8%;
+  left: 10%;
 }
