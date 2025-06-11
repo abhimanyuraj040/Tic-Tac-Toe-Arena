@@ -10,61 +10,122 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Or specify your frontend origin
+    origin: "*", 
     methods: ["GET", "POST"],
   },
 });
 
-let players = {};
+
+let players = {
+  X: null,
+  O: null,
+};
+
+let playerNames = {
+  X: null,
+  O: null,
+};
+
 let board = Array(9).fill(null);
 let currentPlayer = "X";
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  // Assign player X or O
+  let assignedSymbol = null;
+
   if (!players.X) {
     players.X = socket.id;
-    socket.emit("playerAssignment", "X");
+    assignedSymbol = "X";
   } else if (!players.O) {
     players.O = socket.id;
-    socket.emit("playerAssignment", "O");
+    assignedSymbol = "O";
   } else {
     socket.emit("roomFull");
     return;
   }
 
-  // Send current state to new player
-  io.emit("gameState", { board, currentPlayer });
+  socket.emit("playerAssignment", assignedSymbol);
 
-  // Handle move
+  socket.on("submitName", (name) => {
+    playerNames[assignedSymbol] = name;
+    io.emit("gameState", {
+      board,
+      currentPlayer,
+      playerNames,
+    });
+  });
+
+  socket.emit("playerAssignment", assignedSymbol);
+  io.emit("gameState", {
+    board,
+    currentPlayer,
+    playerNames,
+  });
+
   socket.on("makeMove", ({ index, player }) => {
     if (player === currentPlayer && !board[index]) {
       board[index] = player;
-      currentPlayer = currentPlayer === "X" ? "O" : "X";
-      io.emit("gameState", { board, currentPlayer });
+      const winner = checkWinner();
+
+      if (winner || board.every(cell => cell !== null)) {
+        io.emit("gameState", {
+          board,
+          currentPlayer,
+          playerNames,
+          winner: winner ? playerNames[winner] : "draw",
+        });
+      } else {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        io.emit("gameState", {
+          board,
+          currentPlayer,
+          playerNames,
+        });
+      }
     }
   });
 
-  // Handle reset
-  socket.on("resetGame", () => {
-    board = Array(9).fill(null);
-    currentPlayer = "X";
-    io.emit("gameState", { board, currentPlayer });
-  });
-
-  // Handle disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    if (players.X === socket.id) delete players.X;
-    if (players.O === socket.id) delete players.O;
-
-    // Reset game on disconnect
+    if (players.X === socket.id) {
+      delete players.X;
+      delete playerNames.X;
+    }
+    if (players.O === socket.id) {
+      delete players.O;
+      delete playerNames.O;
+    }
     board = Array(9).fill(null);
     currentPlayer = "X";
-    io.emit("gameState", { board, currentPlayer });
+    io.emit("gameState", {
+      board,
+      currentPlayer,
+      playerNames,
+    });
   });
+
+  function checkWinner() {
+    const winPatterns = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (const [a, b, c] of winPatterns) {
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return board[a];
+      }
+    }
+    return null;
+  }
 });
+
 
 const PORT = 4000;
 server.listen(PORT, () =>
