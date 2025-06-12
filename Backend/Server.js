@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -10,11 +9,10 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
-
 
 let players = {
   X: null,
@@ -68,7 +66,7 @@ io.on("connection", (socket) => {
       board[index] = player;
       const winner = checkWinner();
 
-      if (winner || board.every(cell => cell !== null)) {
+      if (winner || board.every((cell) => cell !== null)) {
         io.emit("gameState", {
           board,
           currentPlayer,
@@ -125,7 +123,6 @@ io.on("connection", (socket) => {
     return null;
   }
 });
-
 
 const PORT = 4000;
 server.listen(PORT, () =>

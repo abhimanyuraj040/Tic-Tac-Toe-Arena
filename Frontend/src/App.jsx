@@ -53,7 +53,6 @@ const App = () => {
         const opponentName = playerNames?.[opponentSymbol] || "Opponent";
         setOpponentName(opponentName);
 
-        // Set correct message depending on who is playing
         const message =
           playerSymbol === currentPlayer ? "Your Turn" : `Opponent's Turn`;
 
@@ -65,7 +64,7 @@ const App = () => {
 
     return () => {
       socket.off("playerAssignment");
-      socket.off("gameState");
+      m.off("gameState");
       socket.off("roomFull");
     };
   }, [playerSymbol]);
@@ -105,16 +104,16 @@ const App = () => {
 
   return (
     <div>
-      {/* <div>You are: {playerSymbol}</div> */}
       <div className="left left-top">
-        You are:  {name} - {playerSymbol}
+        You are: {name} - {playerSymbol}
       </div>
-      <div className="right right-top"> Opponent: {opponentName} - {opponentSymbol} </div>
+      <div className="right right-top">
+        {" "}
+        Opponent: {opponentName} - {opponentSymbol}{" "}
+      </div>
       <div className="centre" style={{ marginTop: "6rem" }}>
         Opponent: {status.includes("Waiting") ? "Waiting..." : "Ready"}
       </div>
-      {/* <div>Current Player: {currentPlayer}</div> */}
-      {/* <div className="centre status-message">{status}</div> */}
       <div
         className={`status-message centre ${
           playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
