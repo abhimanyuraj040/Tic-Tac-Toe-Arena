@@ -9,7 +9,7 @@
     "dev": "nodemon Server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Abhimanyu Kumar",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
