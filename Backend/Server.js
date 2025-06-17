@@ -5,7 +5,8 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors({
-  origin: "https://tic-tac-toe-arena-xi.vercel.app",
+  // origin: "https://tic-tac-toe-arena-xi.vercel.app",
+  origin: "*",
   methods: ["GET", "POST"],
   credentials: true
 }));
@@ -13,8 +14,8 @@ app.use(cors({
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // origin: "*",
-    origin:"https://tic-tac-toe-arena-xi.vercel.app/",
+    origin: "*",
+    // origin:"https://tic-tac-toe-arena-xi.vercel.app/",
     methods: ["GET", "POST"],
     credentials: true,
   },
