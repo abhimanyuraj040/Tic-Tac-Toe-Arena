@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
 // const socket = io("http://localhost:4000");
-const socket = io("https://tic-tac-toe-arena-xcgg.vercel.app/");
+const socket = io("https://tic-tac-toe-arena-xcgg.vercel.app/", {
+  withCredentials: true,
+});
 
 const Square = ({ value, onClick }) => (
   <button className="square" onClick={onClick}>
