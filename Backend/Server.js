@@ -103,6 +103,16 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("restartGame", () => {
+    board = Array(9).fill(null);
+    currentPlayer = "X";
+    io.emit("gameState", {
+      board,
+      currentPlayer,
+      playerNames,
+    });
+  });
+
   function checkWinner() {
     const winPatterns = [
       [0, 1, 2],

@@ -28,6 +28,7 @@ const App = () => {
   const [submitted, setSubmitted] = useState(false);
   const [opponentSymbol, setOpponentSymbol] = useState("");
   const [opponentName, setOpponentName] = useState("");
+  const [opponentConnected, setOpponentConnected] = useState(false);
 
   useEffect(() => {
     socket.on("playerAssignment", (symbol) => setPlayerSymbol(symbol));
@@ -48,15 +49,26 @@ const App = () => {
           }
         }
       } else {
-        const opponentSymbol = playerSymbol === "X" ? "O" : "X";
-        setOpponentSymbol(opponentSymbol);
-        const opponentName = playerNames?.[opponentSymbol] || "Opponent";
-        setOpponentName(opponentName);
+        if (playerNames) {
+          const opponentSym = playerSymbol === "X" ? "O" : "X";
+          setOpponentSymbol(opponentSym);
 
-        const message =
-          playerSymbol === currentPlayer ? "Your Turn" : `Opponent's Turn`;
+          const opponent = playerNames[opponentSym];
+          if (opponent) {
+            setOpponentConnected(true);
+            setOpponentName(opponent);
+          } else {
+            setOpponentConnected(false);
+            setOpponentName("Opponent");
+          }
 
-        setStatus(message);
+          const message =
+            playerSymbol === currentPlayer
+              ? "Your Turn"
+              : `Opponent's Turn`;
+
+          setStatus(message);
+        }
       }
     });
 
@@ -80,7 +92,9 @@ const App = () => {
     if (
       playerSymbol === currentPlayer &&
       !board[index] &&
-      !status.includes("Winner")
+      !status.includes("won") &&
+      !status.includes("lost") &&
+      !status.includes("draw")
     ) {
       socket.emit("makeMove", { index, player: playerSymbol });
     }
@@ -99,7 +113,16 @@ const App = () => {
   }
 
   if (!playerSymbol) {
-    return <div>Connecting to game...</div>;
+    return <div className="centered-container">Connecting to game...</div>;
+  }
+
+  if (!opponentConnected) {
+    return (
+      <div className="centered-container">
+        <h2>Looking for opponent...</h2>
+        <p>Waiting for another player to join.</p>
+      </div>
+    );
   }
 
   return (
@@ -108,11 +131,7 @@ const App = () => {
         You are: {name} - {playerSymbol}
       </div>
       <div className="right right-top">
-        {" "}
-        Opponent: {opponentName} - {opponentSymbol}{" "}
-      </div>
-      <div className="centre" style={{ marginTop: "6rem" }}>
-        Opponent: {status.includes("Waiting") ? "Waiting..." : "Ready"}
+        Opponent: {opponentName} - {opponentSymbol}
       </div>
       <div
         className={`status-message centre ${
@@ -129,6 +148,9 @@ const App = () => {
       >
         <Board board={board} onSquareClick={handleSquareClick} />
       </div>
+        <div className="centre-bottom">
+          <button className="reset-button" onClick={() => socket.emit("restartGame")}>Restart Game</button>
+        </div>
     </div>
   );
 };
