@@ -64,7 +64,7 @@ const App = () => {
 
     return () => {
       socket.off("playerAssignment");
-      m.off("gameState");
+      socket.off("gameState");
       socket.off("roomFull");
     };
   }, [playerSymbol]);
