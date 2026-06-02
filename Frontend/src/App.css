@@ -3,13 +3,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background-color: #1a1a2e;
+  color: #e0e0e0;
 }
 
 .board-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: #e0e0e0;
 }
 
 .status {
@@ -30,20 +32,21 @@
   height: 80px;
   font-size: 2rem;
   font-weight: bold;
-  background: #fff;
-  border: 2px solid #000;
+  background: #2d2d44;
+  border: 2px solid #555;
   cursor: pointer;
   transition: background 0.3s;
+  color: #e0e0e0;
 }
 
 .square:hover {
-  background: #f0f0f0;
+  background: #3d3d55;
 }
 
 .reset-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #3b82f6;
+  background-color: #0066cc;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -53,7 +56,7 @@
 }
 
 .reset-button:hover {
-  background-color: #2563eb;
+  background-color: #0052a3;
 }
 
 .centered-container {
@@ -63,40 +66,41 @@
   justify-content: center;
   height: 90vh; /* Full viewport height */
   text-align: center;
+  color: #e0e0e0;
 }
 
-.game-container{
+.game-container {
   padding: 20px;
   position: absolute;
-  top:50%;
-  left:50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.left{
+.left {
   position: absolute;
   top: 50%;
   left: 10%;
   transform: translateY(-50%);
 }
 
-.right{
+.right {
   position: absolute;
   top: 50%;
   right: 10%;
   transform: translateY(-50%);
 }
 
-.centre{
+.centre {
   position: absolute;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.start-button{
+.start-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #3b82f6;
+  background-color: #0066cc;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -106,7 +110,7 @@
 }
 
 .start-button:hover {
-  background-color: #2563eb;
+  background-color: #0052a3;
 }
 
 .status-message {
@@ -134,27 +138,27 @@
   color: rgb(235, 34, 34);
 }
 
-.right-top{
+.right-top {
   top: 8%;
   right: 10%;
 }
 
-.left-top{
+.left-top {
   top: 8%;
   left: 10%;
 }
 
-.centre-bottom{
+.centre-bottom {
   position: fixed;
   bottom: 15%;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.reset-button{
+.reset-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #3b82f6;
+  background-color: #0066cc;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -164,6 +168,6 @@
 }
 
 .reset-button:hover {
-  background-color: #2563eb;
+  background-color: #0052a3;
   cursor: pointer;
 }

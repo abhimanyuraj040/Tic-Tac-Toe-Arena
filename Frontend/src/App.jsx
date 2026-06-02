@@ -66,9 +66,7 @@ const App = () => {
           }
 
           const message =
-            playerSymbol === currentPlayer
-              ? "Your Turn"
-              : `Opponent's Turn`;
+            playerSymbol === currentPlayer ? "Your Turn" : `Opponent's Turn`;
 
           setStatus(message);
         }
@@ -151,9 +149,14 @@ const App = () => {
       >
         <Board board={board} onSquareClick={handleSquareClick} />
       </div>
-        <div className="centre-bottom">
-          <button className="reset-button" onClick={() => socket.emit("restartGame")}>Restart Game</button>
-        </div>
+      <div className="centre-bottom">
+        <button
+          className="reset-button"
+          onClick={() => socket.emit("restartGame")}
+        >
+          Restart Game
+        </button>
+      </div>
     </div>
   );
 };
