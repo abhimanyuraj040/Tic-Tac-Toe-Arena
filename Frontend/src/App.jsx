@@ -2,8 +2,9 @@ import "./App.css";
 
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
+import { supabase } from "./supabaseClient";
 
-// const socket = io("http://localhost:4000");
+// const socket = io("http://localhost:3000");
 const socket = io("https://tic-tac-toe-arena.onrender.com", {
   withCredentials: true,
 });
@@ -32,6 +33,8 @@ const App = () => {
   const [opponentSymbol, setOpponentSymbol] = useState("");
   const [opponentName, setOpponentName] = useState("");
   const [opponentConnected, setOpponentConnected] = useState(false);
+  const [authMethod, setAuthMethod] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     socket.on("playerAssignment", (symbol) => setPlayerSymbol(symbol));
@@ -89,6 +92,61 @@ const App = () => {
     }
   };
 
+  const handleGuestLogin = () => {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let guestName = "Guest_";
+    for (let i = 0; i < 8; i++) {
+      guestName += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
+    }
+    setName(guestName);
+    setAuthMethod("guest");
+    socket.emit("submitName", guestName);
+    setSubmitted(true);
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        console.error("Google login error:", error);
+        alert("Google login failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // If successful, user will be redirected and session will be established
+      // Fetch user data after authentication
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const googleName =
+          user.user_metadata?.full_name ||
+          `Google_User_${user.id.substring(0, 8)}`;
+        setName(googleName);
+        setAuthMethod("google");
+        socket.emit("submitName", googleName);
+        setSubmitted(true);
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error);
+      alert("An error occurred during login. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSquareClick = (index) => {
     if (
       playerSymbol === currentPlayer &&
@@ -104,11 +162,24 @@ const App = () => {
   if (!submitted) {
     return (
       <div className="centered-container">
-        <h2>Enter Your Name</h2>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="start-button" onClick={handleSubmit}>
-          Start Game
-        </button>
+        <h1>Tic-Tac-Toe Arena</h1>
+        <p>Choose how to play:</p>
+        <div className="auth-buttons">
+          <button
+            className="google-button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "🔐 Login with Google"}
+          </button>
+          <button
+            className="guest-button"
+            onClick={handleGuestLogin}
+            disabled={loading}
+          >
+            👤 Play as Guest
+          </button>
+        </div>
       </div>
     );
   }
