@@ -195,61 +195,69 @@ const GamePage = () => {
 
   // Game state
   return (
-    <div>
-      <div className="left left-top">
-        <div style={{ marginBottom: "1rem" }}>
-          You are: <strong>{name}</strong> - <span style={{ color: "#4a90e2", fontWeight: "bold" }}>{playerSymbol}</span>
-        </div>
-        
-        {(profile || localStorage.getItem("authMethod") === "guest") && (
-          <div className="stats-card">
-            <h3>Your Stats</h3>
-            <div className="stats-row">
-              <span className="stats-label">Played:</span>
-              <span className="stats-value">{profile ? profile.matches_played : guestStats.matches_played}</span>
-            </div>
-            <div className="stats-row">
-              <span className="stats-label">Won:</span>
-              <span className="stats-value" style={{ color: "#2ecc71" }}>{profile ? profile.wins : guestStats.wins}</span>
-            </div>
-            <div className="stats-row">
-              <span className="stats-label">Lost:</span>
-              <span className="stats-value" style={{ color: "#e74c3c" }}>{profile ? profile.losses : guestStats.losses}</span>
-            </div>
-            <div className="stats-row">
-              <span className="stats-label">Drawn:</span>
-              <span className="stats-value" style={{ color: "#f1c40f" }}>
-                {profile ? (profile.matches_played - profile.wins - profile.losses) : guestStats.draws}
-              </span>
-            </div>
+    <div className="game-page-container">
+      <div className="players-container">
+        <div className="player-box player-self">
+          <div className="player-details">
+            You are: <strong>{name}</strong> - <span className="symbol-highlight" style={{ color: playerSymbol === "X" ? "#2ecc71" : "#e74c3c" }}>{playerSymbol}</span>
           </div>
-        )}
-      </div>
-      <div className="right right-top">
-        Opponent: {opponentName} - {opponentSymbol}
-      </div>
-      <div
-        className={`status-message centre ${
-          playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
-        }`}
-      >
-        {status}
+          {(profile || localStorage.getItem("authMethod") === "guest") && (
+            <div className="stats-card">
+              <h3>Your Stats</h3>
+              <div className="stats-row">
+                <span className="stats-label">Played:</span>
+                <span className="stats-value">{profile ? profile.matches_played : guestStats.matches_played}</span>
+              </div>
+              <div className="stats-row">
+                <span className="stats-label">Won:</span>
+                <span className="stats-value" style={{ color: "#2ecc71" }}>{profile ? profile.wins : guestStats.wins}</span>
+              </div>
+              <div className="stats-row">
+                <span className="stats-label">Lost:</span>
+                <span className="stats-value" style={{ color: "#e74c3c" }}>{profile ? profile.losses : guestStats.losses}</span>
+              </div>
+              <div className="stats-row">
+                <span className="stats-label">Drawn:</span>
+                <span className="stats-value" style={{ color: "#f1c40f" }}>
+                  {profile ? (profile.matches_played - profile.wins - profile.losses) : guestStats.draws}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="player-box player-opponent">
+          <div className="opponent-details">
+            Opponent: <strong>{opponentName}</strong> - <span className="symbol-highlight" style={{ color: opponentSymbol === "X" ? "#2ecc71" : "#e74c3c" }}>{opponentSymbol}</span>
+          </div>
+        </div>
       </div>
 
-      <div
-        className={`game-container ${
-          playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
-        }`}
-      >
-        <Board board={board} onSquareClick={handleSquareClick} />
-      </div>
-      <div className="centre-bottom">
-        <button
-          className="reset-button"
-          onClick={() => socket.emit("restartGame")}
+      <div className="game-main-content">
+        <div
+          className={`status-message ${
+            playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
+          }`}
         >
-          Restart Game
-        </button>
+          {status}
+        </div>
+
+        <div
+          className={`game-board-wrapper ${
+            playerSymbol === currentPlayer ? "your-turn" : "opponent-turn"
+          }`}
+        >
+          <Board board={board} onSquareClick={handleSquareClick} />
+        </div>
+
+        <div className="game-controls">
+          <button
+            className="reset-button"
+            onClick={() => socket.emit("restartGame")}
+          >
+            Restart Game
+          </button>
+        </div>
       </div>
     </div>
   );

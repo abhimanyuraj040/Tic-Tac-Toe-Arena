@@ -311,3 +311,139 @@
   font-weight: bold;
   color: #ffffff;
 }
+
+/* Responsive Grid and Box Layout */
+.game-page-container {
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  gap: 2rem;
+  padding: 100px 2rem 20px 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+  align-items: start;
+}
+
+.players-container {
+  display: contents;
+}
+
+.player-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.player-self {
+  grid-column: 1;
+}
+
+.player-opponent {
+  grid-column: 3;
+}
+
+.player-details, .opponent-details {
+  font-size: 1.1rem;
+  color: #e0e0e0;
+}
+
+.symbol-highlight {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.game-main-content {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+.game-main-content .status-message {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.game-board-wrapper {
+  margin: 1rem 0;
+}
+
+.game-controls {
+  margin-top: 1rem;
+}
+
+/* Responsive query for mobile screens */
+@media (max-width: 900px) {
+  .game-page-container {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: 1.2rem;
+    padding: 80px 1rem 20px 1rem;
+    align-items: center;
+    min-height: auto;
+  }
+
+  .players-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    gap: 0.8rem;
+  }
+
+  .player-box {
+    padding: 1rem;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .player-self {
+    order: 1;
+  }
+
+  .player-opponent {
+    order: 2;
+  }
+
+  .stats-card {
+    width: 100% !important;
+    max-width: 100%;
+    margin: 0.8rem auto 0 auto;
+    padding: 0.8rem !important;
+  }
+
+  .game-main-content {
+    width: 100%;
+    order: 3;
+    margin-top: 0.5rem;
+  }
+
+  .game-main-content .status-message {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .game-board-wrapper {
+    margin: 0.5rem 0;
+  }
+  
+  .board {
+    grid-template-columns: repeat(3, 75px);
+    grid-template-rows: repeat(3, 75px);
+  }
+  
+  .square {
+    width: 75px;
+    height: 75px;
+    font-size: 1.8rem;
+  }
+}
