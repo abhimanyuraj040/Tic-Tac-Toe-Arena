@@ -4,13 +4,23 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-app.use(
-  cors({
-    origin: "https://tic-tac-toe-arena-xi.vercel.app",
-    methods: ["GET", "POST"],
-    credentials: true,
-  }),
-);
+const allowedOrigins = [
+  "https://tic-tac-toe-arena-xi.vercel.app",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.get("/health", (req, res) => {
   res.status(200).json({ message: "Server is running" });
@@ -18,15 +28,11 @@ app.get("/health", (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "https://tic-tac-toe-arena-xi.vercel.app",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
-// Store waiting players
-let waitingPlayer = null;
+// Store waiting player socket
+let waitingPlayerSocket = null;
 
 // Store all active games
 let games = {};
@@ -34,47 +40,69 @@ let games = {};
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  let gameRoom = null;
-  let assignedSymbol = null;
+  // Initialize socket properties
+  socket.gameRoom = null;
+  socket.assignedSymbol = null;
+  socket.playerName = null;
 
-  if (!waitingPlayer) {
+  if (!waitingPlayerSocket) {
     // First player - add to waiting queue
-    waitingPlayer = socket.id;
-    socket.emit("playerAssignment", null); // Tell client to wait
+    waitingPlayerSocket = socket;
+    socket.assignedSymbol = "X";
+    socket.emit("playerAssignment", "X"); // Tell first player they are X and wait
     console.log("Player waiting for opponent:", socket.id);
   } else {
     // Second player - create a new game
     const gameId = `game_${Date.now()}`;
-    gameRoom = gameId;
-    assignedSymbol = "O";
+    const firstPlayerSocket = waitingPlayerSocket;
+    waitingPlayerSocket = null; // Reset waiting player
+
+    // Setup room and symbol properties
+    firstPlayerSocket.gameRoom = gameId;
+    firstPlayerSocket.assignedSymbol = "X";
+    
+    socket.gameRoom = gameId;
+    socket.assignedSymbol = "O";
 
     games[gameId] = {
       players: {
-        X: waitingPlayer,
+        X: firstPlayerSocket.id,
         O: socket.id,
       },
       playerNames: {
-        X: null,
-        O: null,
+        X: firstPlayerSocket.playerName || null,
+        O: socket.playerName || null,
       },
       board: Array(9).fill(null),
       currentPlayer: "X",
     };
 
-    // Notify both players to join the game room
-    io.to(waitingPlayer).emit("gameAssigned", { gameId, symbol: "X" });
-    socket.emit("gameAssigned", { gameId, symbol: "O" });
+    // Join both sockets to the game room
+    firstPlayerSocket.join(gameId);
+    socket.join(gameId);
 
-    // Join both players to the game room
-    io.to(waitingPlayer).socketsJoin(gameId);
-    socket.socketsJoin(gameId);
+    // Assign symbol O to the second player
+    socket.emit("playerAssignment", "O");
+
+    // Send initial game state to both players in the game room
+    io.to(gameId).emit("gameState", {
+      board: games[gameId].board,
+      currentPlayer: games[gameId].currentPlayer,
+      playerNames: games[gameId].playerNames,
+    });
 
     console.log("New game created:", gameId);
-    waitingPlayer = null;
   }
 
   socket.on("submitName", (name) => {
-    if (!gameRoom) return;
+    socket.playerName = name;
+    const gameRoom = socket.gameRoom;
+    const assignedSymbol = socket.assignedSymbol;
+
+    if (!gameRoom) {
+      console.log(`Saved name ${name} for socket ${socket.id} (not in game yet)`);
+      return;
+    }
 
     const game = games[gameRoom];
     if (!game) return;
@@ -92,6 +120,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("makeMove", ({ index, player }) => {
+    const gameRoom = socket.gameRoom;
+    const assignedSymbol = socket.assignedSymbol;
     if (!gameRoom) return;
 
     const game = games[gameRoom];
@@ -119,6 +149,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("restartGame", () => {
+    const gameRoom = socket.gameRoom;
     if (!gameRoom) return;
 
     const game = games[gameRoom];
@@ -139,18 +170,19 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
 
-    if (socket.id === waitingPlayer) {
-      waitingPlayer = null;
+    if (waitingPlayerSocket && socket.id === waitingPlayerSocket.id) {
+      waitingPlayerSocket = null;
       console.log("Waiting player disconnected");
-    } else if (gameRoom && games[gameRoom]) {
-      const game = games[gameRoom];
+    } else {
+      const gameRoom = socket.gameRoom;
+      if (gameRoom && games[gameRoom]) {
+        // Notify the other player
+        io.to(gameRoom).emit("opponentDisconnected");
 
-      // Notify the other player
-      io.to(gameRoom).emit("opponentDisconnected");
-
-      // Clean up game
-      delete games[gameRoom];
-      console.log("Game ended:", gameRoom);
+        // Clean up game
+        delete games[gameRoom];
+        console.log("Game ended:", gameRoom);
+      }
     }
   });
 

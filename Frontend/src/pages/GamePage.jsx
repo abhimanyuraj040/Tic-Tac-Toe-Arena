@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
-// const socket = io("http://localhost:3000");
-const socket = io("https://tic-tac-toe-arena.onrender.com", {
+const SOCKET_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://localhost:3000"
+  : (import.meta.env.VITE_SOCKET_URL || "https://tic-tac-toe-arena.onrender.com");
+
+const socket = io(SOCKET_URL, {
   withCredentials: true,
 });
 
@@ -86,10 +89,18 @@ const GamePage = () => {
 
     socket.on("roomFull", () => alert("Room is full!"));
 
+    socket.on("opponentDisconnected", () => {
+      alert("Opponent disconnected. Refresh or restart to play again.");
+      setOpponentConnected(false);
+      setOpponentName("");
+      setStatus("Opponent disconnected.");
+    });
+
     return () => {
       socket.off("playerAssignment");
       socket.off("gameState");
       socket.off("roomFull");
+      socket.off("opponentDisconnected");
     };
   }, [playerSymbol]);
 
