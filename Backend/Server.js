@@ -99,6 +99,10 @@ io.on("connection", (socket) => {
     const gameRoom = socket.gameRoom;
     const assignedSymbol = socket.assignedSymbol;
 
+    if (assignedSymbol) {
+      socket.emit("playerAssignment", assignedSymbol);
+    }
+
     if (!gameRoom) {
       console.log(`Saved name ${name} for socket ${socket.id} (not in game yet)`);
       return;

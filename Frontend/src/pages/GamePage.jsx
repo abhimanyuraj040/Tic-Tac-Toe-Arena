@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
+import { updateMatchResult } from "../services/userService";
 
 const SOCKET_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ? "http://localhost:3000"
@@ -55,14 +56,27 @@ const GamePage = () => {
       setCurrentPlayer(currentPlayer);
 
       if (winner) {
+        const userId = localStorage.getItem("userId");
+        const authMethod = localStorage.getItem("authMethod");
+        const isGameAlreadyEnded = status.includes("won") || status.includes("lost") || status.includes("draw");
+
         if (winner === "draw") {
           setStatus("It's a draw!");
+          if (!isGameAlreadyEnded && authMethod === "google" && userId && userId !== "null") {
+            updateMatchResult(userId, "draw");
+          }
         } else if (playerNames) {
           const winnerSymbol = playerNames.X === winner ? "X" : "O";
           if (playerSymbol === winnerSymbol) {
             setStatus("You won!");
+            if (!isGameAlreadyEnded && authMethod === "google" && userId && userId !== "null") {
+              updateMatchResult(userId, "win");
+            }
           } else {
             setStatus("You lost!");
+            if (!isGameAlreadyEnded && authMethod === "google" && userId && userId !== "null") {
+              updateMatchResult(userId, "loss");
+            }
           }
         }
       } else {
