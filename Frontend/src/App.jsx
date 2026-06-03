@@ -36,6 +36,25 @@ const App = () => {
   const [authMethod, setAuthMethod] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Check for authentication and redirect to Vercel if authenticated
+  useEffect(() => {
+    const checkAuthAndRedirect = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (
+        session &&
+        !window.location.origin.includes("localhost") &&
+        window.location.origin !== "https://tic-tac-toe-arena-xi.vercel.app"
+      ) {
+        window.location.href = "https://tic-tac-toe-arena-xi.vercel.app";
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, []);
+
   useEffect(() => {
     socket.on("playerAssignment", (symbol) => setPlayerSymbol(symbol));
 
@@ -105,8 +124,6 @@ const App = () => {
     setAuthMethod("guest");
     socket.emit("submitName", guestName);
     setSubmitted(true);
-    // Redirect to Vercel deployment after successful login
-    window.location.href = "https://tic-tac-toe-arena-xi.vercel.app";
   };
 
   const handleGoogleLogin = async () => {
@@ -142,8 +159,6 @@ const App = () => {
         setAuthMethod("google");
         socket.emit("submitName", googleName);
         setSubmitted(true);
-        // Redirect to Vercel deployment after successful login
-        window.location.href = "https://tic-tac-toe-arena-xi.vercel.app";
       }
     } catch (error) {
       console.error("Error during Google login:", error);
