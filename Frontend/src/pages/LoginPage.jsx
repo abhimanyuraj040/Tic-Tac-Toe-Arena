@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { createOrUpdateUserProfile } from "../services/userService";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
@@ -17,8 +18,13 @@ const LoginPage = () => {
         const userName =
           session.user?.user_metadata?.full_name ||
           `User_${session.user?.id.substring(0, 8)}`;
+
+        // Create or update user profile in Supabase
+        await createOrUpdateUserProfile(session.user.id, userName, "google");
+
         localStorage.setItem("playerName", userName);
         localStorage.setItem("authMethod", "google");
+        localStorage.setItem("userId", session.user.id);
         navigate("/game");
       }
     };
@@ -38,6 +44,7 @@ const LoginPage = () => {
 
     localStorage.setItem("playerName", guestName);
     localStorage.setItem("authMethod", "guest");
+    localStorage.setItem("userId", null); // No user ID for guests
     navigate("/game");
   };
 

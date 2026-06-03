@@ -4,126 +4,157 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-app.use(cors({
-  origin: "https://tic-tac-toe-arena-xi.vercel.app",
-  methods: ["GET", "POST"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "https://tic-tac-toe-arena-xi.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true,
+  }),
+);
 
-app.get("/health",(req,res)=>{
+app.get("/health", (req, res) => {
   res.status(200).json({ message: "Server is running" });
-})
+});
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // origin: "*",
-    origin:"https://tic-tac-toe-arena-xi.vercel.app",
+    origin: "https://tic-tac-toe-arena-xi.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-let players = {
-  X: null,
-  O: null,
-};
+// Store waiting players
+let waitingPlayer = null;
 
-let playerNames = {
-  X: null,
-  O: null,
-};
-
-let board = Array(9).fill(null);
-let currentPlayer = "X";
+// Store all active games
+let games = {};
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  let gameRoom = null;
   let assignedSymbol = null;
 
-  if (!players.X) {
-    players.X = socket.id;
-    assignedSymbol = "X";
-  } else if (!players.O) {
-    players.O = socket.id;
-    assignedSymbol = "O";
+  if (!waitingPlayer) {
+    // First player - add to waiting queue
+    waitingPlayer = socket.id;
+    socket.emit("playerAssignment", null); // Tell client to wait
+    console.log("Player waiting for opponent:", socket.id);
   } else {
-    socket.emit("roomFull");
-    return;
+    // Second player - create a new game
+    const gameId = `game_${Date.now()}`;
+    gameRoom = gameId;
+    assignedSymbol = "O";
+
+    games[gameId] = {
+      players: {
+        X: waitingPlayer,
+        O: socket.id,
+      },
+      playerNames: {
+        X: null,
+        O: null,
+      },
+      board: Array(9).fill(null),
+      currentPlayer: "X",
+    };
+
+    // Notify both players to join the game room
+    io.to(waitingPlayer).emit("gameAssigned", { gameId, symbol: "X" });
+    socket.emit("gameAssigned", { gameId, symbol: "O" });
+
+    // Join both players to the game room
+    io.to(waitingPlayer).socketsJoin(gameId);
+    socket.socketsJoin(gameId);
+
+    console.log("New game created:", gameId);
+    waitingPlayer = null;
   }
 
-  socket.emit("playerAssignment", assignedSymbol);
-
   socket.on("submitName", (name) => {
-    playerNames[assignedSymbol] = name;
-    io.emit("gameState", {
-      board,
-      currentPlayer,
-      playerNames,
-    });
-  });
+    if (!gameRoom) return;
 
-  socket.emit("playerAssignment", assignedSymbol);
-  io.emit("gameState", {
-    board,
-    currentPlayer,
-    playerNames,
+    const game = games[gameRoom];
+    if (!game) return;
+
+    game.playerNames[assignedSymbol] = name;
+
+    // Broadcast updated game state only to players in this game
+    io.to(gameRoom).emit("gameState", {
+      board: game.board,
+      currentPlayer: game.currentPlayer,
+      playerNames: game.playerNames,
+    });
+
+    console.log(`[${gameRoom}] ${assignedSymbol} joined as ${name}`);
   });
 
   socket.on("makeMove", ({ index, player }) => {
-    if (player === currentPlayer && !board[index]) {
-      board[index] = player;
-      const winner = checkWinner();
+    if (!gameRoom) return;
 
-      if (winner || board.every((cell) => cell !== null)) {
-        io.emit("gameState", {
-          board,
-          currentPlayer,
-          playerNames,
-          winner: winner ? playerNames[winner] : "draw",
-        });
-      } else {
-        currentPlayer = currentPlayer === "X" ? "O" : "X";
-        io.emit("gameState", {
-          board,
-          currentPlayer,
-          playerNames,
-        });
-      }
+    const game = games[gameRoom];
+    if (!game || player !== game.currentPlayer || game.board[index]) return;
+
+    game.board[index] = player;
+    const winner = checkWinner(game.board);
+
+    if (winner || game.board.every((cell) => cell !== null)) {
+      io.to(gameRoom).emit("gameState", {
+        board: game.board,
+        currentPlayer: game.currentPlayer,
+        playerNames: game.playerNames,
+        winner: winner ? game.playerNames[winner] : "draw",
+      });
+      console.log(`[${gameRoom}] Game ended. Winner: ${winner || "draw"}`);
+    } else {
+      game.currentPlayer = game.currentPlayer === "X" ? "O" : "X";
+      io.to(gameRoom).emit("gameState", {
+        board: game.board,
+        currentPlayer: game.currentPlayer,
+        playerNames: game.playerNames,
+      });
     }
+  });
+
+  socket.on("restartGame", () => {
+    if (!gameRoom) return;
+
+    const game = games[gameRoom];
+    if (!game) return;
+
+    game.board = Array(9).fill(null);
+    game.currentPlayer = "X";
+
+    io.to(gameRoom).emit("gameState", {
+      board: game.board,
+      currentPlayer: game.currentPlayer,
+      playerNames: game.playerNames,
+    });
+
+    console.log(`[${gameRoom}] Game restarted`);
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    if (players.X === socket.id) {
-      delete players.X;
-      delete playerNames.X;
+
+    if (socket.id === waitingPlayer) {
+      waitingPlayer = null;
+      console.log("Waiting player disconnected");
+    } else if (gameRoom && games[gameRoom]) {
+      const game = games[gameRoom];
+
+      // Notify the other player
+      io.to(gameRoom).emit("opponentDisconnected");
+
+      // Clean up game
+      delete games[gameRoom];
+      console.log("Game ended:", gameRoom);
     }
-    if (players.O === socket.id) {
-      delete players.O;
-      delete playerNames.O;
-    }
-    board = Array(9).fill(null);
-    currentPlayer = "X";
-    io.emit("gameState", {
-      board,
-      currentPlayer,
-      playerNames,
-    });
   });
 
-  socket.on("restartGame", () => {
-    board = Array(9).fill(null);
-    currentPlayer = "X";
-    io.emit("gameState", {
-      board,
-      currentPlayer,
-      playerNames,
-    });
-  });
-
-  function checkWinner() {
+  function checkWinner(board) {
     const winPatterns = [
       [0, 1, 2],
       [3, 4, 5],
@@ -146,5 +177,5 @@ io.on("connection", (socket) => {
 
 const PORT = 3000;
 server.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
+  console.log(`Server running on http://localhost:${PORT}`),
 );

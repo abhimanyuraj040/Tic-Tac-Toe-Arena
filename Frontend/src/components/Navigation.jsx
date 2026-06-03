@@ -20,6 +20,7 @@ const Navigation = () => {
   const handleLogout = async () => {
     localStorage.removeItem("playerName");
     localStorage.removeItem("authMethod");
+    localStorage.removeItem("userId");
     await supabase.auth.signOut();
     navigate("/");
   };
