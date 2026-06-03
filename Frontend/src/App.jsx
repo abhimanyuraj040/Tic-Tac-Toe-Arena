@@ -115,7 +115,9 @@ const App = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: "https://tic-tac-toe-arena-xi.vercel.app",
+          redirectTo: window.location.origin.includes("localhost")
+            ? window.location.origin
+            : "https://tic-tac-toe-arena-xi.vercel.app",
         },
       });
 
