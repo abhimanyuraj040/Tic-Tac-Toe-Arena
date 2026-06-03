@@ -273,3 +273,41 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
 }
+
+/* User Stats Card styling */
+.stats-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-top: 1rem;
+  width: 200px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.stats-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  color: #4a90e2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.4rem;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.stats-label {
+  color: #a0a0b0;
+}
+
+.stats-value {
+  font-weight: bold;
+  color: #ffffff;
+}
