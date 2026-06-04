@@ -8,7 +8,6 @@ const Navigation = () => {
   const location = useLocation();
   const playerName = localStorage.getItem("playerName");
 
-  // Don't show navigation on login page
   if (location.pathname === "/" || !playerName) {
     return null;
   }

@@ -1,13 +1,11 @@
 import { supabase } from "../supabaseClient";
 
-// Create or update user profile
 export const createOrUpdateUserProfile = async (
   userId,
   username,
   authMethod,
 ) => {
   try {
-    // Check if user profile already exists
     const { data: existingUser, error: fetchError } = await supabase
       .from("user_profiles")
       .select("*")
@@ -21,11 +19,9 @@ export const createOrUpdateUserProfile = async (
     }
 
     if (existingUser) {
-      // User already exists, return existing profile
       return existingUser;
     }
 
-    // Create new user profile
     const { data: newUser, error: createError } = await supabase
       .from("user_profiles")
       .insert({
@@ -52,7 +48,6 @@ export const createOrUpdateUserProfile = async (
   }
 };
 
-// Get user profile by user ID
 export const getUserProfile = async (userId) => {
   try {
     const { data, error } = await supabase
@@ -73,7 +68,6 @@ export const getUserProfile = async (userId) => {
   }
 };
 
-// Update match result (win/loss)
 export const updateMatchResult = async (userId, result) => {
   try {
     const { data: profile, error: fetchError } = await supabase
@@ -113,7 +107,6 @@ export const updateMatchResult = async (userId, result) => {
   }
 };
 
-// Get all user profiles (for leaderboard)
 export const getAllUserProfiles = async () => {
   try {
     const { data, error } = await supabase
