@@ -773,3 +773,61 @@
     width: 100%;
   }
 }
+
+/* Leaderboard custom styles */
+.leaderboard-card {
+  margin-top: 1.5rem !important;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.8rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.leaderboard-item.top-rank {
+  background: rgba(74, 144, 226, 0.05);
+  border-color: rgba(74, 144, 226, 0.15);
+}
+
+.leaderboard-rank-name {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rank-badge {
+  font-size: 1.1rem;
+  font-weight: bold;
+  width: 24px;
+  text-align: center;
+}
+
+.leaderboard-name {
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.leaderboard-wins {
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.no-leaderboard-text {
+  color: #a0a0b0;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem 0;
+}

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile } from "../services/userService";
+import { getUserProfile, getAllUserProfiles } from "../services/userService";
 
 const LobbyPage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [profile, setProfile] = useState(null);
   const [roomInput, setRoomInput] = useState("");
+  const [leaderboard, setLeaderboard] = useState([]);
   const [guestStats, setGuestStats] = useState({
     matches_played: 0,
     wins: 0,
@@ -16,6 +17,17 @@ const LobbyPage = () => {
 
   const authMethod = localStorage.getItem("authMethod");
   const userId = localStorage.getItem("userId");
+
+  // Fetch leaderboard on mount
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      const data = await getAllUserProfiles();
+      if (data) {
+        setLeaderboard(data.slice(0, 5));
+      }
+    };
+    fetchLeaderboard();
+  }, []);
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -101,6 +113,30 @@ const LobbyPage = () => {
             </div>
             {authMethod === "guest" && (
               <p className="guest-note-text">* Guest stats are stored locally</p>
+            )}
+          </div>
+
+          {/* Leaderboard Card */}
+          <div className="stats-card lobby-card leaderboard-card">
+            <h3>🏆 Leaderboard (Top 5)</h3>
+            {leaderboard.length > 0 ? (
+              <div className="leaderboard-list">
+                {leaderboard.map((item, idx) => {
+                  const isTopRank = idx < 3;
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "";
+                  return (
+                    <div key={item.id} className={`leaderboard-item ${isTopRank ? "top-rank" : ""}`}>
+                      <div className="leaderboard-rank-name">
+                        <span className="rank-badge">{medal || idx + 1}</span>
+                        <span className="leaderboard-name">{item.username}</span>
+                      </div>
+                      <span className="leaderboard-wins">{item.wins} W</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="no-leaderboard-text">No rankings available yet</p>
             )}
           </div>
         </div>
