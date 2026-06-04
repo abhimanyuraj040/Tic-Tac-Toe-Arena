@@ -39,6 +39,8 @@ const GamePage = () => {
   const [opponentSymbol, setOpponentSymbol] = useState("");
   const [opponentName, setOpponentName] = useState("");
   const [opponentConnected, setOpponentConnected] = useState(false);
+  const [showResultOverlay, setShowResultOverlay] = useState(false);
+  const [gameResult, setGameResult] = useState(null); // 'win', 'loss', 'draw'
 
   // Check if user is authenticated, if not redirect to login
   useEffect(() => {
@@ -98,18 +100,26 @@ const GamePage = () => {
 
         if (winner === "draw") {
           setStatus("It's a draw!");
+          setGameResult("draw");
+          setShowResultOverlay(true);
           updateStats("draw");
         } else if (playerNames) {
           const winnerSymbol = playerNames.X === winner ? "X" : "O";
           if (playerSymbol === winnerSymbol) {
             setStatus("You won!");
+            setGameResult("win");
+            setShowResultOverlay(true);
             updateStats("win");
           } else {
             setStatus("You lost!");
+            setGameResult("loss");
+            setShowResultOverlay(true);
             updateStats("loss");
           }
         }
       } else {
+        setShowResultOverlay(false);
+        setGameResult(null);
         if (playerNames) {
           const opponentSym = playerSymbol === "X" ? "O" : "X";
           setOpponentSymbol(opponentSym);
@@ -244,6 +254,57 @@ const GamePage = () => {
           </button>
         </div>
       </div>
+
+      {showResultOverlay && (
+        <div className={`result-overlay ${gameResult}-overlay`}>
+          <div className="result-content-card">
+            <div className="result-icon-wrapper">
+              {gameResult === "win" && <div className="victory-crown">👑</div>}
+              {gameResult === "win" && <div className="result-emoji victory-emoji">🏆</div>}
+              {gameResult === "loss" && <div className="result-emoji defeat-emoji">💀</div>}
+              {gameResult === "draw" && <div className="result-emoji draw-emoji">🤝</div>}
+            </div>
+            <h1 className="result-title">
+              {gameResult === "win" && "VICTORY!"}
+              {gameResult === "loss" && "DEFEAT"}
+              {gameResult === "draw" && "IT'S A DRAW!"}
+            </h1>
+            <p className="result-subtitle">
+              {gameResult === "win" && "Outstanding play! You outsmarted your opponent."}
+              {gameResult === "loss" && "Better luck next time! Keep practicing."}
+              {gameResult === "draw" && "A hard fought battle. Evenly matched!"}
+            </p>
+            <div className="result-buttons">
+              <button
+                className="result-btn action-btn-play"
+                onClick={() => socket.emit("restartGame")}
+              >
+                Play Again
+              </button>
+              <button
+                className="result-btn action-btn-lobby"
+                onClick={() => navigate("/lobby")}
+              >
+                Back to Lobby
+              </button>
+            </div>
+          </div>
+          {gameResult === "win" && (
+            <div className="confetti-container">
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className={`confetti-particle p${i}`}></div>
+              ))}
+            </div>
+          )}
+          {gameResult === "loss" && (
+            <div className="defeat-smoke-container">
+              <div className="smoke-cloud s1"></div>
+              <div className="smoke-cloud s2"></div>
+              <div className="smoke-cloud s3"></div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
