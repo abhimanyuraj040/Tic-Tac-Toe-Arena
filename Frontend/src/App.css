@@ -447,3 +447,329 @@
     font-size: 1.8rem;
   }
 }
+
+/* Lobby container styling */
+.lobby-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 2rem 40px 2rem;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  color: #e0e0e0;
+}
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.lobby-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.highlight-text {
+  color: #4a90e2;
+  text-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+}
+
+.subtitle-text {
+  font-size: 1.1rem;
+  color: #a0a0b0;
+}
+
+.lobby-main-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.lobby-stats-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.lobby-card {
+  width: 100% !important;
+  margin-top: 0 !important;
+  padding: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.guest-note-text {
+  font-size: 0.8rem;
+  color: #e67e22;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.lobby-modes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Glass panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Mode cards */
+.mode-card {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(74, 144, 226, 0.3);
+  box-shadow: 0 12px 40px 0 rgba(74, 144, 226, 0.15);
+}
+
+.mode-icon {
+  font-size: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-info {
+  flex: 1;
+}
+
+.mode-info h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+
+.mode-info p {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #a0a0b0;
+  font-size: 1rem;
+}
+
+.mode-action-btn {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: fit-content;
+}
+
+.public-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.public-btn:hover {
+  background: #27ae60;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+/* Private Mode controls */
+.private-mode-card {
+  cursor: default;
+}
+
+.private-mode-card:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.friend-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+}
+
+.private-btn {
+  background: #3498db;
+  color: white;
+  width: 100%;
+}
+
+.private-btn:hover {
+  background: #2980b9;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+}
+
+.divider-text {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.join-room-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.join-room-form input {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.join-room-form input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.join-submit-btn {
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.join-submit-btn:hover {
+  background: #d35400;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+}
+
+/* Room code styles inside GamePage */
+.room-code-badge {
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px dashed #3498db;
+  color: #3498db;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  width: fit-content;
+  margin: 1rem auto;
+}
+
+.small-badge {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  padding: 0.4rem 1rem;
+  margin: 0;
+}
+
+.share-link-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.invite-desc {
+  font-size: 0.95rem;
+  color: #a0a0b0;
+  margin-bottom: 0.5rem;
+}
+
+.copy-invite-btn {
+  background: #9b59b6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.copy-invite-btn:hover {
+  background: #8e44ad;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+}
+
+/* Responsive styles for Lobby page */
+@media (max-width: 768px) {
+  .lobby-container {
+    padding: 70px 1rem 30px 1rem;
+  }
+
+  .lobby-header {
+    margin-bottom: 2rem;
+  }
+
+  .lobby-header h1 {
+    font-size: 2rem;
+  }
+
+  .lobby-main-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .lobby-stats-section {
+    order: 2;
+  }
+
+  .lobby-modes-section {
+    order: 1;
+    gap: 1.2rem;
+  }
+
+  .mode-card {
+    padding: 1.5rem;
+    gap: 1rem;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .mode-info h2 {
+    font-size: 1.4rem;
+  }
+
+  .mode-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .join-room-form {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .join-submit-btn {
+    padding: 0.8rem;
+    width: 100%;
+  }
+}

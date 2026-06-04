@@ -14,7 +14,7 @@ const Navigation = () => {
   }
 
   const handleBackHome = () => {
-    navigate("/");
+    navigate("/lobby");
   };
 
   const handleLogout = async () => {
@@ -28,9 +28,11 @@ const Navigation = () => {
   return (
     <div className="navigation">
       <div className="nav-buttons">
-        <button className="nav-back-button" onClick={handleBackHome}>
-          🏠 Home
-        </button>
+        {location.pathname !== "/lobby" && (
+          <button className="nav-back-button" onClick={handleBackHome}>
+            🏠 Lobby
+          </button>
+        )}
         <button className="nav-logout-button" onClick={handleLogout}>
           🚪 Logout
         </button>

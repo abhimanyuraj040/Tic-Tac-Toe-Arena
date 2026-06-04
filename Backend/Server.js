@@ -45,54 +45,119 @@ io.on("connection", (socket) => {
   socket.assignedSymbol = null;
   socket.playerName = null;
 
-  if (!waitingPlayerSocket) {
-    // First player - add to waiting queue
-    waitingPlayerSocket = socket;
-    socket.assignedSymbol = "X";
-    socket.emit("playerAssignment", "X"); // Tell first player they are X and wait
-    console.log("Player waiting for opponent:", socket.id);
-  } else {
-    // Second player - create a new game
-    const gameId = `game_${Date.now()}`;
-    const firstPlayerSocket = waitingPlayerSocket;
-    waitingPlayerSocket = null; // Reset waiting player
+  socket.on("joinMatchmaking", () => {
+    if (socket.gameRoom) return;
 
-    // Setup room and symbol properties
-    firstPlayerSocket.gameRoom = gameId;
-    firstPlayerSocket.assignedSymbol = "X";
-    
-    socket.gameRoom = gameId;
-    socket.assignedSymbol = "O";
+    if (!waitingPlayerSocket) {
+      // First player - add to waiting queue
+      waitingPlayerSocket = socket;
+      socket.assignedSymbol = "X";
+      socket.emit("playerAssignment", "X");
+      console.log("Player joined matchmaking queue:", socket.id);
+    } else {
+      if (waitingPlayerSocket.id === socket.id) return;
 
-    games[gameId] = {
-      players: {
-        X: firstPlayerSocket.id,
-        O: socket.id,
-      },
-      playerNames: {
-        X: firstPlayerSocket.playerName || null,
-        O: socket.playerName || null,
-      },
-      board: Array(9).fill(null),
-      currentPlayer: "X",
-    };
+      // Second player - create a new game
+      const gameId = `game_${Date.now()}`;
+      const firstPlayerSocket = waitingPlayerSocket;
+      waitingPlayerSocket = null; // Reset waiting player
 
-    // Join both sockets to the game room
-    firstPlayerSocket.join(gameId);
-    socket.join(gameId);
+      // Setup room and symbol properties
+      firstPlayerSocket.gameRoom = gameId;
+      firstPlayerSocket.assignedSymbol = "X";
+      
+      socket.gameRoom = gameId;
+      socket.assignedSymbol = "O";
 
-    // Assign symbol O to the second player
-    socket.emit("playerAssignment", "O");
+      games[gameId] = {
+        players: {
+          X: firstPlayerSocket.id,
+          O: socket.id,
+        },
+        playerNames: {
+          X: firstPlayerSocket.playerName || null,
+          O: socket.playerName || null,
+        },
+        board: Array(9).fill(null),
+        currentPlayer: "X",
+      };
 
-    // Send initial game state to both players in the game room
-    io.to(gameId).emit("gameState", {
-      board: games[gameId].board,
-      currentPlayer: games[gameId].currentPlayer,
-      playerNames: games[gameId].playerNames,
-    });
+      // Join both sockets to the game room
+      firstPlayerSocket.join(gameId);
+      socket.join(gameId);
 
-    console.log("New game created:", gameId);
-  }
+      // Assign symbol O to the second player
+      socket.emit("playerAssignment", "O");
+
+      // Send initial game state to both players in the game room
+      io.to(gameId).emit("gameState", {
+        board: games[gameId].board,
+        currentPlayer: games[gameId].currentPlayer,
+        playerNames: games[gameId].playerNames,
+      });
+
+      console.log("New matchmaking game created:", gameId);
+    }
+  });
+
+  socket.on("joinPrivateRoom", ({ roomCode }) => {
+    if (!roomCode) return;
+    if (socket.gameRoom) return; // already in a game
+
+    // Check if the game room exists
+    let game = games[roomCode];
+
+    if (!game) {
+      // Create a new private room
+      socket.gameRoom = roomCode;
+      socket.assignedSymbol = "X";
+
+      games[roomCode] = {
+        players: {
+          X: socket.id,
+          O: null,
+        },
+        playerNames: {
+          X: socket.playerName || null,
+          O: null,
+        },
+        board: Array(9).fill(null),
+        currentPlayer: "X",
+      };
+
+      socket.join(roomCode);
+      socket.emit("playerAssignment", "X");
+      console.log(`Private room created: ${roomCode} by ${socket.id}`);
+    } else {
+      // Room exists. Check if it's already full
+      if (game.players.O) {
+        socket.emit("roomFull");
+        console.log(`Private room ${roomCode} is full. Join request rejected for ${socket.id}`);
+        return;
+      }
+
+      if (game.players.X === socket.id) return;
+
+      // Join as Player O
+      socket.gameRoom = roomCode;
+      socket.assignedSymbol = "O";
+
+      game.players.O = socket.id;
+      game.playerNames.O = socket.playerName || null;
+
+      socket.join(roomCode);
+      socket.emit("playerAssignment", "O");
+
+      // Send initial game state to both players
+      io.to(roomCode).emit("gameState", {
+        board: game.board,
+        currentPlayer: game.currentPlayer,
+        playerNames: game.playerNames,
+      });
+
+      console.log(`Player ${socket.id} joined private room ${roomCode}`);
+    }
+  });
 
   socket.on("submitName", (name) => {
     socket.playerName = name;

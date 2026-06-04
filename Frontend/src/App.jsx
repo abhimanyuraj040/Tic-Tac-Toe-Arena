@@ -8,6 +8,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import LobbyPage from "./pages/LobbyPage";
 import GamePage from "./pages/GamePage";
 import Navigation from "./components/Navigation";
 
@@ -17,6 +18,7 @@ const App = () => {
       <Navigation />
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/lobby" element={<LobbyPage />} />
         <Route path="/game" element={<GamePage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

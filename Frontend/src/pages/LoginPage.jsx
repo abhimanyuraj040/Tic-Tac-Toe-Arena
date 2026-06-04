@@ -25,7 +25,7 @@ const LoginPage = () => {
         localStorage.setItem("playerName", userName);
         localStorage.setItem("authMethod", "google");
         localStorage.setItem("userId", session.user.id);
-        navigate("/game");
+        navigate("/lobby");
       }
     };
 
@@ -45,7 +45,7 @@ const LoginPage = () => {
     localStorage.setItem("playerName", guestName);
     localStorage.setItem("authMethod", "guest");
     localStorage.setItem("userId", null); // No user ID for guests
-    navigate("/game");
+    navigate("/lobby");
   };
 
   const handleGoogleLogin = async () => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
-import { updateMatchResult, getUserProfile } from "../services/userService";
+import { updateMatchResult } from "../services/userService";
 
 const SOCKET_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ? "http://localhost:3000"
@@ -27,6 +27,10 @@ const Board = ({ board, onSquareClick }) => (
 
 const GamePage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roomCode = searchParams.get("room");
+  const matchmaking = searchParams.get("matchmaking");
+
   const [playerSymbol, setPlayerSymbol] = useState(null);
   const [board, setBoard] = useState(Array(9).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState("X");
@@ -35,13 +39,6 @@ const GamePage = () => {
   const [opponentSymbol, setOpponentSymbol] = useState("");
   const [opponentName, setOpponentName] = useState("");
   const [opponentConnected, setOpponentConnected] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [guestStats, setGuestStats] = useState({
-    matches_played: 0,
-    wins: 0,
-    losses: 0,
-    draws: 0,
-  });
 
   // Check if user is authenticated, if not redirect to login
   useEffect(() => {
@@ -54,30 +51,16 @@ const GamePage = () => {
     socket.emit("submitName", playerName);
   }, [navigate]);
 
-  // Fetch user profile or load guest stats from localStorage
+  // Join matchmaking or private room on mount
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    const authMethod = localStorage.getItem("authMethod");
-
-    if (authMethod === "google" && userId && userId !== "null") {
-      const fetchProfile = async () => {
-        const userProfile = await getUserProfile(userId);
-        if (userProfile) {
-          setProfile(userProfile);
-        }
-      };
-      fetchProfile();
-    } else if (authMethod === "guest") {
-      const stored = localStorage.getItem("guestStats");
-      if (stored) {
-        try {
-          setGuestStats(JSON.parse(stored));
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    if (roomCode) {
+      socket.emit("joinPrivateRoom", { roomCode });
+    } else if (matchmaking) {
+      socket.emit("joinMatchmaking");
+    } else {
+      navigate("/lobby");
     }
-  }, []);
+  }, [roomCode, matchmaking, navigate]);
 
   // Socket event handlers
   useEffect(() => {
@@ -96,21 +79,20 @@ const GamePage = () => {
           if (isGameAlreadyEnded) return;
 
           if (authMethod === "google" && userId && userId !== "null") {
-            const updatedProfile = await updateMatchResult(userId, result);
-            if (updatedProfile) {
-              setProfile(updatedProfile);
-            }
+            await updateMatchResult(userId, result);
           } else if (authMethod === "guest") {
-            setGuestStats((prev) => {
-              const current = {
-                matches_played: prev.matches_played + 1,
-                wins: result === "win" ? prev.wins + 1 : prev.wins,
-                losses: result === "loss" ? prev.losses + 1 : prev.losses,
-                draws: result === "draw" ? prev.draws + 1 : prev.draws,
-              };
-              localStorage.setItem("guestStats", JSON.stringify(current));
-              return current;
-            });
+            const stored = localStorage.getItem("guestStats");
+            let current = { matches_played: 0, wins: 0, losses: 0, draws: 0 };
+            if (stored) {
+              try {
+                current = JSON.parse(stored);
+              } catch (e) {}
+            }
+            current.matches_played += 1;
+            if (result === "win") current.wins += 1;
+            else if (result === "loss") current.losses += 1;
+            else if (result === "draw") current.draws += 1;
+            localStorage.setItem("guestStats", JSON.stringify(current));
           }
         };
 
@@ -149,7 +131,10 @@ const GamePage = () => {
       }
     });
 
-    socket.on("roomFull", () => alert("Room is full!"));
+    socket.on("roomFull", () => {
+      alert("Room is full or does not exist!");
+      navigate("/lobby");
+    });
 
     socket.on("opponentDisconnected", () => {
       alert("Opponent disconnected. Refresh or restart to play again.");
@@ -164,7 +149,7 @@ const GamePage = () => {
       socket.off("roomFull");
       socket.off("opponentDisconnected");
     };
-  }, [playerSymbol]);
+  }, [playerSymbol, status, navigate]);
 
   const handleSquareClick = (index) => {
     if (
@@ -188,7 +173,24 @@ const GamePage = () => {
     return (
       <div className="centered-container">
         <h2>Looking for opponent...</h2>
-        <p>Waiting for another player to join.</p>
+        <p style={{ color: "#a0a0b0", marginBottom: "2rem" }}>Waiting for another player to join.</p>
+        {roomCode && (
+          <div className="share-link-section">
+            <p className="invite-desc">Share this room code with your friend:</p>
+            <div className="room-code-badge">{roomCode}</div>
+            <button
+              className="copy-invite-btn"
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/game?room=${roomCode}`
+                );
+                alert("Invite link copied to clipboard!");
+              }}
+            >
+              📋 Copy Invite Link
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -201,27 +203,10 @@ const GamePage = () => {
           <div className="player-details">
             You are: <strong>{name}</strong> - <span className="symbol-highlight" style={{ color: playerSymbol === "X" ? "#2ecc71" : "#e74c3c" }}>{playerSymbol}</span>
           </div>
-          {(profile || localStorage.getItem("authMethod") === "guest") && (
-            <div className="stats-card">
-              <h3>Your Stats</h3>
-              <div className="stats-row">
-                <span className="stats-label">Played:</span>
-                <span className="stats-value">{profile ? profile.matches_played : guestStats.matches_played}</span>
-              </div>
-              <div className="stats-row">
-                <span className="stats-label">Won:</span>
-                <span className="stats-value" style={{ color: "#2ecc71" }}>{profile ? profile.wins : guestStats.wins}</span>
-              </div>
-              <div className="stats-row">
-                <span className="stats-label">Lost:</span>
-                <span className="stats-value" style={{ color: "#e74c3c" }}>{profile ? profile.losses : guestStats.losses}</span>
-              </div>
-              <div className="stats-row">
-                <span className="stats-label">Drawn:</span>
-                <span className="stats-value" style={{ color: "#f1c40f" }}>
-                  {profile ? (profile.matches_played - profile.wins - profile.losses) : guestStats.draws}
-                </span>
-              </div>
+          {roomCode && (
+            <div className="room-details-box" style={{ marginTop: "1.2rem" }}>
+              <span className="stats-label" style={{ display: "block", marginBottom: "0.4rem" }}>Room Code:</span>
+              <div className="room-code-badge small-badge">{roomCode}</div>
             </div>
           )}
         </div>
