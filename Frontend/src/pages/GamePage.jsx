@@ -68,11 +68,11 @@ const GamePage = () => {
   useEffect(() => {
     socket.on("playerAssignment", (symbol) => setPlayerSymbol(symbol));
 
-    socket.on("gameState", ({ board, currentPlayer, playerNames, winner }) => {
+    socket.on("gameState", ({ board, currentPlayer, playerNames, winner, winnerSymbol }) => {
       setBoard(board);
       setCurrentPlayer(currentPlayer);
 
-      if (winner) {
+      if (winnerSymbol) {
         const userId = localStorage.getItem("userId");
         const authMethod = localStorage.getItem("authMethod");
         const isGameAlreadyEnded = status.includes("won") || status.includes("lost") || status.includes("draw");
@@ -98,13 +98,12 @@ const GamePage = () => {
           }
         };
 
-        if (winner === "draw") {
+        if (winnerSymbol === "draw") {
           setStatus("It's a draw!");
           setGameResult("draw");
           setShowResultOverlay(true);
           updateStats("draw");
-        } else if (playerNames) {
-          const winnerSymbol = playerNames.X === winner ? "X" : "O";
+        } else {
           if (playerSymbol === winnerSymbol) {
             setStatus("You won!");
             setGameResult("win");
@@ -256,7 +255,7 @@ const GamePage = () => {
       </div>
 
       {showResultOverlay && (
-        <div className={`result-overlay ${gameResult}-overlay`}>
+        <div className={`result-overlay ${gameResult === "win" ? "victory" : gameResult === "loss" ? "defeat" : "draw"}-overlay`}>
           <div className="result-content-card">
             <div className="result-icon-wrapper">
               {gameResult === "win" && <div className="victory-crown">👑</div>}

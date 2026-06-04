@@ -205,6 +205,7 @@ io.on("connection", (socket) => {
         currentPlayer: game.currentPlayer,
         playerNames: game.playerNames,
         winner: winner ? game.playerNames[winner] : "draw",
+        winnerSymbol: winner ? winner : "draw",
       });
       console.log(`[${gameRoom}] Game ended. Winner: ${winner || "draw"}`);
     } else {
